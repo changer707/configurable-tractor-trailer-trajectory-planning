@@ -1,5 +1,5 @@
-max_iter	5000
-max_cpu_time	60
+max_iter	30000
+max_cpu_time	1000
 tol		1e-6
 bound_push	0.0001
 mu_strategy	adaptive

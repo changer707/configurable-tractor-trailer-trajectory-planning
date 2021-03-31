@@ -1,81 +1,82 @@
-% ==============================================================================
-% MATLAB Source Codes for "Trajectory Planning for a Tractor with Multiple
-% Trailers in Extremely Narrow Environments: A Unified Approach".
+% 可配置tractor+trailer轨迹规划
+% 2021.3.29 15:43
+%功能：
+%（1）NE可配置     （2）obj.fun 路径最短    （3）终点航向角回正     （4）终点区域大小可配置     
+%效果：
+% 4车倒车入库可实现
+%可继续改进之处：
+% 为了保证求解成功率：先少车无障碍的场景——多车狭窄的场景（车数的渐增、障碍的渐大、障碍渐逼近终点）
 
-% ==============================================================================
-
-%   Copyright (C) 2019 Bai Li
-%   User must cite the following article if they utilize these codes for
-%   new publications: Bai Li et al., "Trajectory Planning for a Tractor
-%   with Multiple Trailers in Extremely Narrow Environments: A Unified
-%   Approach", To appear in IEEE 2019 International Conference on Robotics
-%   and Automation (ICRA).
-
-% ==============================================================================
-
-% If there are inquiries, feel free to contact libai@zju.edu.cn
-%
-% (Very Important) The AMPL utilized in this pack is just a TRIAL version.
-% The users must delete AMPL.exe in this version after trying it, and
-% then apply for their own valid license files through following the
-% official instructions at https://ampl.com/try-ampl/request-a-full-trial/
-
+% ****需要修改****
+% 1.RunMe：可配置参数、场景构造
+% 2.matlab--ampl：PrepareTrajectoryPlanning.m    SetTwoPointBoundaryConditionsToFiles.m  case.mod  
+% 3.目标函数、约束、ipopt参数：case.mod  ipopt.opt   
 % ==============================================================================
 clear
 clc
 close all
 
 global polygon_obstacle_vertex
-%%%%%%%%  Experiment setup %%%%%%%%
-
-% Case 1
-
-
+%% 可配置参数
+NE = 160;          % 离散时间步数
+NC = 4;            % tractor+trailer 数目
+flag_offaxle = 0;  % 连轴/离轴 offaxle-1 ， onaxle-0
+                                                        % lane change:(-20,-10)    park:(-15,-20)
+x0_1 =   5  ;         % tractor起始x坐标 x_1(t = 0)     % 泊车：（-10，-15，pi/2）正向，   (-5,15,pi/2)倒车
+y0_1 =   -15  ;         % tractor起始y坐标 y_1(t = 0)     % 右转：（-2.5，-15，pi/2）90度，  (5,-15,0.75*pi)45度
+theta0_all = 0.75*pi  ; % tractor+trailer起始航向角 theta_all(t = 0)
+                            % 终点：(12.5,-2.5)
+x_center_tf = 12.5;         % 矩形中心x坐标
+y_center_tf = -2.5;         % 矩形中心y坐标
+theta_tf = 0;              % tractor+trailer终点航向
 %% Terminal configuration %%
 % We create a box with the geometric center being (x_center_tf, y_center_tf)
 % The box is 16 m length and 2.6 m width
-x_center_tf = 8;        % geometric center along x axis 
-y_center_tf = 0;         % geometric center along y axis
 v_tf = 0;                    % v(t = tf)
 a_tf = 0;                    % a(t = tf)
 w_tf = 0;                   % w(t = tf)
-box_l = 16;
+alfa_tf = 0;                % 终点航向角
+
 box_w = 2.6;
-box_vertex = zeros(8,1);% 右上-左上（顺时针）
-box_vertex(1)=x_center_tf+0.5*box_l;box_vertex(2)=y_center_tf+0.5*box_w;
-box_vertex(3)=x_center_tf+0.5*box_l;box_vertex(4)=y_center_tf-0.5*box_w;
-box_vertex(5)=x_center_tf-0.5*box_l;box_vertex(6)=y_center_tf-0.5*box_w;
-box_vertex(7)=x_center_tf-0.5*box_l;box_vertex(8)=y_center_tf+0.5*box_w;
-%% Obstacle setup %%
+box_l = 16;
+box_vertex = GetBoxVertex(x_center_tf,y_center_tf,box_w,box_l,alfa_tf);  %得到终点矩形的顶点坐标
+%% 场景构造 %%
 % Vertex points of N_obs obstable are record in a 1 x (8*N_obs) vector. For example,
 % suppose we have one rectangular obstacle with vertexes V1 (v1x, v2x), V2
 % (v2x, v2y), V3(v3x, v3y), and V4(v4x, v4y), then the vector should be
 % [v1x, v1y, v2x, v2y, v3x, v3y, v4x, v4y].
 % 默认障碍物为四边形
 
-%  polygon_obstacle_vertex = [-30 -15 20 -15 20 -25 -30 -25 -30 5 20 5 20 10 -30 10 0 -12.5 10 -12.5 10 -7.5 0 -7.5];%lane change
- polygon_obstacle_vertex = [0 -10 20 -10 20 -2.5 0 -2.5 0 2.5 20 2.5 20 10 0 10];%park
+% 90度右转
+% obs1=[0 -5 20 -5 20 -10 0 -10];
+% obs2=[0 10 10 10 10 5 0 5];
+% obs3=[-20 -5 -10 -5 -10 -10 -20 -10];
+% obs4=[-20 10 -10 10 -10 5 -20 5];
+
+% 45度右转
+% obs1=[0 -5 20 -5 20 -20 15 -20];
+obs1=[5 -5 20 -5 20 -15 5 -10];
+% 倒车入库
+% obs1 = [5 -5 20 -5 20 -10 5 -10];
+% obs2 = [5 0 20 0 20 10 5 10];
+
+ polygon_obstacle_vertex = [obs1];%park
 %% Initial configuration %%
-% lane change:(-20,-10)    park:(-15,-20)
-x0_1 = -10;         % x_1(t = 0)
-y0_1 = -15;         % y_1(t = 0)
 phy_0 = 0;          % phy(t = 0)
 v_0 = 0;              % v(t = 0)
 a_0 = 0;              % a(t = 0)
 w_0 = 0;             % w(t = 0)
-%% 可配置参数
-NC = 2;            % number of tractor+trailer
-flag_offaxle = 1;  % offaxle-1 ， onaxle-0
 %% boundary_constraints
 % start-end points
 % boundary_constraints = [x0_1, y0_1, theta0_1, theta0_2, theta0_3, theta0_4, phy_0, v_0, a_0, w_0, x_center_tf, y_center_tf, v_tf, a_tf, w_tf];
-boundary_constraints = zeros(1,NC+11);
+boundary_constraints = zeros(1,NC+12);
 for i =1:NC
-    boundary_constraints(i+2) = pi/2; %park
+    boundary_constraints(i+2) =   theta0_all; %park
 end
 boundary_constraints(1)= x0_1;boundary_constraints(2)=y0_1;boundary_constraints(2+NC+1)=phy_0;boundary_constraints(2+NC+2)=v_0;
 boundary_constraints(2+NC+3)=a_0;boundary_constraints(2+NC+4)=w_0;boundary_constraints(2+NC+5)=x_center_tf;boundary_constraints(2+NC+6)=y_center_tf;
 boundary_constraints(2+NC+7)=v_tf;boundary_constraints(2+NC+8)=a_tf;boundary_constraints(2+NC+9)=w_tf;
+boundary_constraints(2+NC+10)= theta_tf;
 %% Other alternative cases %%
 % % Case 2
 % polygon_obstacle_vertex = [-12.81,2.42,-11.56,1.01,-15.19,-2.2,-16.44,-0.79,-5.85,5.12,-4.38,5.99,-2.05,2.08,-3.52,1.21,0.47,-2.18,0.38,-4.06,-4.47,-3.82,-4.38,-1.94, -10,5-8,-8,7-7.5,-5,-5-8,-10,-4-8];
@@ -117,3 +118,14 @@ if (is_success)
     %%% the following function.
 %     VideoGeneration;
 end
+
+load x.txt
+load y.txt
+sum1=0;sum2=0;
+for i=1:2:length(x)-2
+    sum1 = sum1+sqrt( (x(i)-x(i+2)).^2 + (y(i)-y(i+2)).^2 );
+end
+for i = 2:2:length(x)-2
+    sum2 = sum2+sqrt( (x(i)-x(i+2)).^2 + (y(i)-y(i+2)).^2 );
+end
+sum = sum1+sum2;

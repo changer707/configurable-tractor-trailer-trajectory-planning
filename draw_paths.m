@@ -27,11 +27,11 @@ phy = reshape(phy,length(phy),1); % Get the steering angle profile
 x = reshape(x,length(x)./NCNC,NCNC); % Get the x coordination profile for each of the NCNC parts of the tractor-trailer vehicle
 y = reshape(y,length(y)./NCNC,NCNC); % Get the y coordination profile
 
-number_of_frame = 100; % Determin how dense the trajectories are to be plotted.
+number_of_frame = 200; % Determin how dense the trajectories are to be plotted.
 
 % load NE.txt
 % NE = NE(1,1);
-NE = 20;
+NE = 40;
 phy = smoother(phy,number_of_frame,NE);
 x = smoother(x,number_of_frame,NE);
 y = smoother(y,number_of_frame,NE);
