@@ -39,6 +39,7 @@ param AREA{i in O}; 							# Area of each obstacle
 param initial_config {i in {1..(7+NC-1)}}; 		# Initial configuration
 param terminal_config {i in {1..6}}; 			# Terminal configuration
 param box{i in {1..2}};                 # box of terminal configuration
+param shape{i in {1..7}};                # shape paramenters of tractor/trailers
 
 ########### Bounds on the state/control profiles ###################### 
 param amax == 0.25;
@@ -47,15 +48,15 @@ param wmax == 0.5;
 param phymax == 0.7;
 
 ########### Geometric size of the tractor-trailer vehicle #############
-param TN == 0.25;
-param TL == 1.5;
-param TM == 0.25;
-param TB == 1;
+param TN == shape[1];   #tractor前悬0.25
+param TL == shape[2];    #tractor轴距1.5
+param TM == shape[3];   #tractor后悬0.25
+param TB == shape[4];      #tractor宽度1
 
-param L2 == 3;
+param L2 == shape[5];    #相连节点3
 
-param TT1 == 1;
-param TT2 == 1;
+param TT1 == shape[6];     #trailer前悬1
+param TT2 == shape[7];     #trailer后悬1
 
 ########### Declaration of the variabes ##############################
 var x{i in I, k in V};
@@ -214,3 +215,4 @@ param terminal_config :=  include Terminal_config;
 param NC := include NC_config;
 param NE := include NE_config;
 param box := include Box_config;
+param shape :=include shape_config;

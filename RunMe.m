@@ -1,7 +1,7 @@
 % 可配置tractor+trailer轨迹规划
 % 2021.4.7 9:52
 %功能：
-%（1）NE可配置     （2）obj.fun 路径最短+避障    （3）终点航向角回正     （4）终点区域大小、方位可配置     
+%（1）NE可配置     （2）obj.fun 路径最短+避障    （3）终点航向角回正     （4）终点区域大小、方位可配置   (5)车体大小的可配置  
 %效果：
 % 4车倒车入库可实现
 %可继续改进之处：
@@ -22,20 +22,29 @@ NE = 160;          % 离散时间步数
 NC = 4;            % tractor+trailer 数目
 flag_offaxle = 0;  % 连轴/离轴 offaxle-1 ， onaxle-0
                                                         % lane change:(-20,-10)    park:(-15,-20)
-x0_1 =   5  ;         % tractor起始x坐标 x_1(t = 0)     % 泊车：（-10，-15，pi/2）正向，   (-5,15,pi/2)倒车
+x0_1 =   -2.5  ;         % tractor起始x坐标 x_1(t = 0)     % 泊车：（-10，-15，pi/2）正向，   (-5,15,pi/2)倒车
 y0_1 =   -15  ;         % tractor起始y坐标 y_1(t = 0)     % 右转：（-2.5，-15，pi/2）90度，  (5,-15,0.75*pi)45度
-theta0_all = 0.75*pi  ; % tractor+trailer起始航向角 theta_all(t = 0)
+theta0_all = 0.5*pi  ; % tractor+trailer起始航向角 theta_all(t = 0)
                             % 终点：(12.5,-2.5)
-x_center_tf = -5;         % 矩形中心x坐标 12.5
-y_center_tf = -5;         % 矩形中心y坐标 -2.5
-theta_tf = 0.75*pi;              % tractor+trailer终点航向 0
+x_center_tf = 12.5;         % 矩形中心x坐标 12.5
+y_center_tf = -2.5;         % 矩形中心y坐标 -2.5
+theta_tf = 0;              % tractor+trailer终点航向 0     % 倒车入库：pi
+
+TN = 0.25; %tractor前悬
+TL = 1.5; %tractor轴距
+TM = 0.25; %tractor后悬
+TT1 = 1; %trailer前悬
+TT2 = 1; %trailer后悬
+TB = 1; %tractor+trailer车宽
+L2 = 3; %tractor与trailer相连长度
+shape_param = 1*[ TN TL TM TB L2 TT1 TT2 ];
 %% Terminal configuration %%
 % We create a box with the geometric center being (x_center_tf, y_center_tf)
 % The box is 16 m length and 2.6 m width
 v_tf = 0;                    % v(t = tf)
 a_tf = 0;                    % a(t = tf)
 w_tf = 0;                   % w(t = tf)
-alfa_tf = 0.75*pi;              % 终点框的位置
+alfa_tf = 0;              % 终点框的位置
              
 box_l = 16;                 % default:16*2.6
 box_w = 2.6;
@@ -48,19 +57,19 @@ box_vertex = GetBoxVertex(x_center_tf,y_center_tf,box_w,box_l,alfa_tf);  %得到终
 % 默认障碍物为四边形
 
 % 90度右转
-% obs1=[0 -5 20 -5 20 -10 0 -10];
-% obs2=[0 10 10 10 10 5 0 5];
-% obs3=[-20 -5 -10 -5 -10 -10 -20 -10];
-% obs4=[-20 10 -10 10 -10 5 -20 5];
+obs1=[0 -5 20 -5 20 -10 0 -10];
+obs2=[0 10 10 10 10 5 0 5];
+obs3=[-20 -5 -10 -5 -10 -10 -20 -10];
+obs4=[-20 10 -10 10 -10 5 -20 5];
 
 % 45度右转
-obs1=[0 -5 20 -5 20 -20 15 -20];
+% obs1=[0 -5 20 -5 20 -20 15 -20];
 % obs1=[5 -5 20 -5 20 -15 5 -10];
 % 倒车入库
 % obs1 = [5 -5 20 -5 20 -10 5 -10];
 % obs2 = [5 0 20 0 20 10 5 10];
 
- polygon_obstacle_vertex = [];%park
+ polygon_obstacle_vertex = [obs1,obs2,obs3,obs4];%park
 %% Initial configuration %%
 phy_0 = 0;          % phy(t = 0)
 v_0 = 0;              % v(t = 0)

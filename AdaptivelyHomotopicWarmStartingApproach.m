@@ -6,12 +6,12 @@ alpha = 0.5;                % Setting of \alpha_reduce
 Nexpand = 10;            % Threshold of successive successful cycles that would make step increase 
 epsilon_exit = 1e-5;     % Threshold to exit Algorithm 1 with a failure
 epsilon_0 = 0.05;         % Gamma value related to Subproblem 0
-
+epsilon_01 = 0.3;
 %% Begin with \gamma = epsilon_0;
 % Write geometric centers of all the obstacles in a file
 GenerateGeometricCenters;
-GenerateVertexes(epsilon_0);
-
+GenerateVertexes(epsilon_0,shape_param);
+GenerateBody(epsilon_01,shape_param);
 %% Pre-solution with simple initialization
 % Note that this small design is not mentioned in detail in our ICRA paper.
 if NC>1
@@ -42,6 +42,7 @@ end
 
 %% Initialization of the parameters.
 gamma_achieved = epsilon_0;
+gamma1_ach =epsilon_01;
 counter = 0;
 
 store_gamma = [];
@@ -51,15 +52,20 @@ store_step = [];
 % The following while loops never terminates until the originla problem
 % (i.e. the one with \gamma_achieved == 1) is solved successfully OR
 % epsilon_exit related threshold is activated.
+
 while (gamma_achieved ~= 1)
     store_step = [store_step, step]; % Record the current step value
     if ((gamma_achieved + step) <= 1) % Check if the next gamma_trial would exceed the upper bound
         gamma_trial = gamma_achieved + step;
+        gamma1 = gamma1_ach+step;
     else % If it exceeds, it would be set to 1
         gamma_trial = 1;
+        gamma1=1;
     end
-    GenerateVertexes(gamma_trial);
+    GenerateVertexes(gamma_trial,shape_param);
+    GenerateBody(gamma1,shape_param);
     store_gamma = [store_gamma, gamma_achieved]; % Record the current successful gamma_achieved
+
     % 解优化问题
     if NC>1
         if ~flag_offaxle
@@ -74,6 +80,7 @@ while (gamma_achieved ~= 1)
 
     if (flag == 1) % If succeeds
         gamma_achieved = gamma_trial; % Update the current successful gamma_trail as gamma.
+        gamma1_ach = gamma1;
         counter = counter + 1; % Increase the counter by 1.
     else % If fails
         step = step .* alpha; % Reduce "step" because a failure happens

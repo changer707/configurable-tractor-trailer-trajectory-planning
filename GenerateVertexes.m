@@ -1,4 +1,4 @@
-function GenerateVertexes(gamma)
+function GenerateVertexes(gamma,shape_param)
 % Input: scalar called \gamma, retunr void, but a new file is written as
 % the output. By default, the obstacles are all assumed to be quadrilateral.
 % If other types of polygonal obstacles are to be added, the .mod file also
@@ -68,3 +68,11 @@ for ii = 1 : number_of_obstacles
     fprintf(fid,'%g    %g\r\n', ii, Area(ii));
 end
 fclose(fid);
+
+% shape_change = gamma*shape_param;
+% delete('shape_config');
+% fid = fopen('shape_config', 'w');
+% for ii = 1 : length(shape_change)
+%    fprintf(fid,'%g  %f \r\n', ii, shape_change(ii));
+% end
+% fclose(fid);

@@ -39,7 +39,8 @@ param AREA{i in O}; 							# Area of each obstacle
 param initial_config {i in {1..(7+NC-1)}}; 		# Initial configuration
 param terminal_config {i in {1..6}}; 			# Terminal configuration
 param box {i in {1..2}};                 # box of terminal configuration
-
+param box_vertex{i in {1..8}};            # boxvertex of terminal configuration
+param shape{i in {1..7}};                # shape paramenters of tractor/trailers
 ########### Bounds on the state/control profiles ###################### 
 param amax == 0.25;
 param vmax == 2.0;
@@ -47,15 +48,15 @@ param wmax == 0.5;
 param phymax == 0.7;
 
 ########### Geometric size of the tractor-trailer vehicle #############
-param TN == 0.25;
-param TL == 1.5;
-param TM == 0.25;
-param TB == 1;
+param TN == shape[1];   #tractor前悬0.25
+param TL == shape[2];    #tractor轴距1.5
+param TM == shape[3];   #tractor后悬0.25
+param TB == shape[4];      #tractor宽度1
 
-param L2 == 3;
+param L2 == shape[5];    #相连节点3
 
-param TT1 == 1;
-param TT2 == 1;
+param TT1 == shape[6];     #trailer前悬1
+param TT2 == shape[7];     #trailer后悬1
 
 ########### Declaration of the variabes ##############################
 var x{i in I, k in V};
@@ -211,29 +212,51 @@ w[1] = initial_config[NC+6];
 ##
 
 
-s.t. Eq_end_AX {pp in {1..NC}}:
-(AX[NE,pp] - terminal_config[1])^2 <= (box[1]/2)^2; ## 8*1.3由终点矩形确定，16*2.6足够容纳5个车
+#s.t. Eq_end_AX {pp in {1..NC}}:
+#(AX[NE,pp] - terminal_config[1])^2 <= (box[1]/2)^2; ## 8*1.3由终点矩形确定，16*2.6足够容纳5个车
 
-s.t. Eq_end_BX {pp in {1..NC}}:
-(BX[NE,pp] - terminal_config[1])^2 <= (box[1]/2)^2;
+#s.t. Eq_end_BX {pp in {1..NC}}:
+#(BX[NE,pp] - terminal_config[1])^2 <= (box[1]/2)^2;
 
-s.t. Eq_end_CX {pp in {1..NC}}:
-(CX[NE,pp] - terminal_config[1])^2 <= (box[1]/2)^2;
+#s.t. Eq_end_CX {pp in {1..NC}}:
+#(CX[NE,pp] - terminal_config[1])^2 <= (box[1]/2)^2;
 
-s.t. Eq_end_DX {pp in {1..NC}}:
-(DX[NE,pp] - terminal_config[1])^2 <= (box[1]/2)^2;
+#s.t. Eq_end_DX {pp in {1..NC}}:
+#(DX[NE,pp] - terminal_config[1])^2 <= (box[1]/2)^2;
 
-s.t. Eq_end_AY {pp in {1..NC}}:
-(AY[NE,pp] - terminal_config[2])^2 <= (box[2]/2)^2;
+#s.t. Eq_end_AY {pp in {1..NC}}:
+#(AY[NE,pp] - terminal_config[2])^2 <= (box[2]/2)^2;
 
-s.t. Eq_end_BY {pp in {1..NC}}:
-(BY[NE,pp] - terminal_config[2])^2 <= (box[2]/2)^2;
+#s.t. Eq_end_BY {pp in {1..NC}}:
+#(BY[NE,pp] - terminal_config[2])^2 <= (box[2]/2)^2;
 
-s.t. Eq_end_CY {pp in {1..NC}}:
-(CY[NE,pp] - terminal_config[2])^2 <= (box[2]/2)^2;
+#s.t. Eq_end_CY {pp in {1..NC}}:
+#(CY[NE,pp] - terminal_config[2])^2 <= (box[2]/2)^2;
 
-s.t. Eq_end_DY {pp in {1..NC}}:
-(DY[NE,pp] - terminal_config[2])^2 <= (box[2]/2)^2;
+#s.t. Eq_end_DY {pp in {1..NC}}:
+#(DY[NE,pp] - terminal_config[2])^2 <= (box[2]/2)^2;
+
+#可旋转终点框
+s.t. Eq_end_A1 {pp in {1..NC}}:
+( (box_vertex[5]-box_vertex[7])*(AY[NE,pp]-box_vertex[8])-(AX[NE,pp]-box_vertex[7])*(box_vertex[6]-box_vertex[8]) )*( (box_vertex[1]-box_vertex[3])*(AY[NE,pp]-box_vertex[4])-(AX[NE,pp]-box_vertex[3])*(box_vertex[2]-box_vertex[4]) )>=0;
+s.t. Eq_end_A2 {pp in {1..NC}}:
+( (box_vertex[3]-box_vertex[5])*(AY[NE,pp]-box_vertex[6]) - (AX[NE,pp]-box_vertex[5])*(box_vertex[4]-box_vertex[6]) )*( (box_vertex[7]-box_vertex[1])*(AY[NE,pp]-box_vertex[2]) - (AX[NE,pp]-box_vertex[1])*(box_vertex[8]-box_vertex[2]) )>=0;
+
+s.t. Eq_end_B1 {pp in {1..NC}}:
+( (box_vertex[5]-box_vertex[7])*(BY[NE,pp]-box_vertex[8])-(BX[NE,pp]-box_vertex[7])*(box_vertex[6]-box_vertex[8]) )*( (box_vertex[1]-box_vertex[3])*(BY[NE,pp]-box_vertex[4])-(BX[NE,pp]-box_vertex[3])*(box_vertex[2]-box_vertex[4]) )>=0;
+s.t. Eq_end_B2 {pp in {1..NC}}:
+( (box_vertex[3]-box_vertex[5])*(BY[NE,pp]-box_vertex[6]) - (BX[NE,pp]-box_vertex[5])*(box_vertex[4]-box_vertex[6]) )*( (box_vertex[7]-box_vertex[1])*(BY[NE,pp]-box_vertex[2]) - (BX[NE,pp]-box_vertex[1])*(box_vertex[8]-box_vertex[2]) )>=0;
+
+s.t. Eq_end_C1 {pp in {1..NC}}:
+( (box_vertex[5]-box_vertex[7])*(CY[NE,pp]-box_vertex[8])-(CX[NE,pp]-box_vertex[7])*(box_vertex[6]-box_vertex[8]) )*( (box_vertex[1]-box_vertex[3])*(CY[NE,pp]-box_vertex[4])-(CX[NE,pp]-box_vertex[3])*(box_vertex[2]-box_vertex[4]) )>=0;
+s.t. Eq_end_C2 {pp in {1..NC}}:
+( (box_vertex[3]-box_vertex[5])*(CY[NE,pp]-box_vertex[6]) - (CX[NE,pp]-box_vertex[5])*(box_vertex[4]-box_vertex[6]) )*( (box_vertex[7]-box_vertex[1])*(CY[NE,pp]-box_vertex[2]) - (CX[NE,pp]-box_vertex[1])*(box_vertex[8]-box_vertex[2]) )>=0;
+
+s.t. Eq_end_D1 {pp in {1..NC}}:
+( (box_vertex[5]-box_vertex[7])*(DY[NE,pp]-box_vertex[8])-(DX[NE,pp]-box_vertex[7])*(box_vertex[6]-box_vertex[8]) )*( (box_vertex[1]-box_vertex[3])*(DY[NE,pp]-box_vertex[4])-(DX[NE,pp]-box_vertex[3])*(box_vertex[2]-box_vertex[4]) )>=0;
+s.t. Eq_end_D2 {pp in {1..NC}}:
+( (box_vertex[3]-box_vertex[5])*(DY[NE,pp]-box_vertex[6]) - (DX[NE,pp]-box_vertex[5])*(box_vertex[4]-box_vertex[6]) )*( (box_vertex[7]-box_vertex[1])*(DY[NE,pp]-box_vertex[2]) - (DX[NE,pp]-box_vertex[1])*(box_vertex[8]-box_vertex[2]) )>=0;
+
 
 s.t. EQ_ending_v :
 v[NE] = terminal_config[3];
@@ -295,3 +318,5 @@ param terminal_config :=  include Terminal_config;
 param NC := include NC_config;
 param NE := include NE_config;
 param box := include Box_config;
+param box_vertex := include Boxvertex_config;
+param shape :=include shape_config;

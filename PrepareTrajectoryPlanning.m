@@ -9,4 +9,4 @@ if (length(boundary_constraints) ~= NC+12)
     error two-point boundary conditions set wrongly
 end
 
-SetTwoPointBoundaryConditionsToFiles(boundary_constraints,NC,NE,box_l,box_w);
+SetTwoPointBoundaryConditionsToFiles(boundary_constraints,NC,NE,box_l,box_w,box_vertex,shape_param);
