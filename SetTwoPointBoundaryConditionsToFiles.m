@@ -1,4 +1,4 @@
-function SetTwoPointBoundaryConditionsToFiles(vector,NC,NE,box_l,box_w)
+function SetTwoPointBoundaryConditionsToFiles(vector,NC,NE,box_l,box_w,box_vertex)
 % Input:
 % --- vector: two-point boundary_conditions
 % Output:
@@ -41,5 +41,12 @@ delete('Box_config');
 fid = fopen('Box_config', 'w');
 for ii = 1 : length(box)
     fprintf(fid,'%g  %f \r\n', ii, box(ii));
+end
+fclose(fid);
+
+delete('Boxvertex_config');
+fid = fopen('Boxvertex_config', 'w');
+for ii = 1 : length(box_vertex)
+    fprintf(fid,'%g  %f \r\n', ii, box_vertex(ii));
 end
 fclose(fid);

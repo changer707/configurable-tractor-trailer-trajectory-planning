@@ -1,12 +1,12 @@
 % 可配置tractor+trailer轨迹规划
-% 2021.3.29 15:43
+% 2021.4.7 9:52
 %功能：
-%（1）NE可配置     （2）obj.fun 路径最短    （3）终点航向角回正     （4）终点区域大小可配置     
+%（1）NE可配置     （2）obj.fun 路径最短+避障    （3）终点航向角回正     （4）终点区域大小、方位可配置     
 %效果：
 % 4车倒车入库可实现
 %可继续改进之处：
-% 为了保证求解成功率：先少车无障碍的场景——多车狭窄的场景（车数的渐增、障碍的渐大、障碍渐逼近终点）
-
+% （1）为了保证求解成功率：先少车无障碍的场景——多车狭窄的场景（车数的渐增、障碍的渐大、障碍渐逼近终点）
+% 
 % ****需要修改****
 % 1.RunMe：可配置参数、场景构造
 % 2.matlab--ampl：PrepareTrajectoryPlanning.m    SetTwoPointBoundaryConditionsToFiles.m  case.mod  
@@ -26,19 +26,19 @@ x0_1 =   5  ;         % tractor起始x坐标 x_1(t = 0)     % 泊车：（-10，-15，pi/2
 y0_1 =   -15  ;         % tractor起始y坐标 y_1(t = 0)     % 右转：（-2.5，-15，pi/2）90度，  (5,-15,0.75*pi)45度
 theta0_all = 0.75*pi  ; % tractor+trailer起始航向角 theta_all(t = 0)
                             % 终点：(12.5,-2.5)
-x_center_tf = 12.5;         % 矩形中心x坐标
-y_center_tf = -2.5;         % 矩形中心y坐标
-theta_tf = 0;              % tractor+trailer终点航向
+x_center_tf = -5;         % 矩形中心x坐标 12.5
+y_center_tf = -5;         % 矩形中心y坐标 -2.5
+theta_tf = 0.75*pi;              % tractor+trailer终点航向 0
 %% Terminal configuration %%
 % We create a box with the geometric center being (x_center_tf, y_center_tf)
 % The box is 16 m length and 2.6 m width
 v_tf = 0;                    % v(t = tf)
 a_tf = 0;                    % a(t = tf)
 w_tf = 0;                   % w(t = tf)
-alfa_tf = 0;                % 终点航向角
-
+alfa_tf = 0.75*pi;              % 终点框的位置
+             
+box_l = 16;                 % default:16*2.6
 box_w = 2.6;
-box_l = 16;
 box_vertex = GetBoxVertex(x_center_tf,y_center_tf,box_w,box_l,alfa_tf);  %得到终点矩形的顶点坐标
 %% 场景构造 %%
 % Vertex points of N_obs obstable are record in a 1 x (8*N_obs) vector. For example,
@@ -54,13 +54,13 @@ box_vertex = GetBoxVertex(x_center_tf,y_center_tf,box_w,box_l,alfa_tf);  %得到终
 % obs4=[-20 10 -10 10 -10 5 -20 5];
 
 % 45度右转
-% obs1=[0 -5 20 -5 20 -20 15 -20];
-obs1=[5 -5 20 -5 20 -15 5 -10];
+obs1=[0 -5 20 -5 20 -20 15 -20];
+% obs1=[5 -5 20 -5 20 -15 5 -10];
 % 倒车入库
 % obs1 = [5 -5 20 -5 20 -10 5 -10];
 % obs2 = [5 0 20 0 20 10 5 10];
 
- polygon_obstacle_vertex = [obs1];%park
+ polygon_obstacle_vertex = [];%park
 %% Initial configuration %%
 phy_0 = 0;          % phy(t = 0)
 v_0 = 0;              % v(t = 0)
