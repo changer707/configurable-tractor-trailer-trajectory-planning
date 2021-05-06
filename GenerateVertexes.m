@@ -69,10 +69,11 @@ for ii = 1 : number_of_obstacles
 end
 fclose(fid);
 
+
 % shape_change = gamma*shape_param;
 % delete('shape_config');
 % fid = fopen('shape_config', 'w');
-% for ii = 1 : length(shape_change)
-%    fprintf(fid,'%g  %f \r\n', ii, shape_change(ii));
+% for ii = 1 : length(shape_param)
+%     fprintf(fid,'%g  %f \r\n', ii, shape_change(ii));
 % end
 % fclose(fid);

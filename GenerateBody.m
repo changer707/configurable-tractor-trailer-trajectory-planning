@@ -12,7 +12,7 @@ function GenerateBody(gamma,shape_param)
 
 if ((gamma > 1) || (gamma < 0))
     if gamma>1
-        gamma = 1;
+        gamma =1;
     else
         error 'Invalid \gamma';
     end
@@ -25,7 +25,7 @@ warning off
 shape_change = gamma*shape_param;
 delete('shape_config');
 fid = fopen('shape_config', 'w');
-for ii = 1 : length(shape_change)
-   fprintf(fid,'%g  %f \r\n', ii, shape_change(ii));
+for ii = 1 : length(shape_param)
+    fprintf(fid,'%g  %f \r\n', ii, shape_change(ii));
 end
 fclose(fid);

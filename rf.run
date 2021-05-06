@@ -1,6 +1,7 @@
 reset;
 
 model casef.mod;
+include initial_guess.INIVAL;
 option solver ipopt;
 solve;
 
